@@ -1,3 +1,5 @@
+import { LatLng } from "leaflet";
+import { useState } from "react";
 import {
   FeatureGroup,
   LayerGroup,
@@ -8,6 +10,31 @@ import {
   Popup,
   TileLayer,
 } from "react-leaflet";
+import { useMapEvent } from "react-leaflet/hooks";
+
+const MapActionComponent = () => {
+  const [markers, setMarkers] = useState<LatLng[]>([]);
+
+  const map = useMapEvent("click", (event) => {
+    map.setView(event.latlng, map.getZoom());
+  });
+
+  useMapEvent("dblclick", (event) =>
+    setMarkers((prev) => [...prev, event.latlng])
+  );
+
+  return markers.map((marker) => (
+    <Marker position={marker} key={marker.lat + "-" + marker.lng}>
+      <Popup>
+        Lat: {marker.lat}
+        <br />
+        Long: {marker.lng}
+        {marker.alt && <br />}
+        {marker.alt && `Alt: ${marker.alt}`}
+      </Popup>
+    </Marker>
+  ));
+};
 
 function App() {
   return (
@@ -17,9 +44,11 @@ function App() {
         center={[-6.2186488, 106.7991978]}
         zoom={13}
       >
+        <MapActionComponent />
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          eventHandlers={{ click: (event) => console.log(event) }}
         />
 
         <LayersControl position="topright">
